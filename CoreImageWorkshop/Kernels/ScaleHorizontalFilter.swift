@@ -32,13 +32,6 @@ class ScaleHorizontalFilter: CIFilter {
         let result = Self.kernel.apply(
             extent: extent,
             roiCallback: { _, rect in
-//                let scaledRect = CGRect(
-//                    x: rect.origin.x / CGFloat(self.inputScaleX.floatValue),
-//                    y: rect.origin.y,
-//                    width: rect.size.width / CGFloat(self.inputScaleX.floatValue),
-//                    height: rect.size.height
-//                )
-//                return scaledRect
                 return rect
             },
             image: input,

@@ -120,26 +120,7 @@ struct LipsBeautyFilterView: View {
 
     // MARK: - Face Detection
 
-    private func detectLipsMask() async {
-        let ciImage = CIImage(image: originalImage)!
-        let request = DetectFaceLandmarksRequest()
-        let observations = try! await request.perform(on: ciImage)
-
-        let face = observations.first!
-        let landmarks = face.landmarks!
-
-        let pixelSize = ciImage.extent.size
-        let lipsPoints = landmarks.outerLips.pointsInImageCoordinates(pixelSize, origin: .upperLeft)
-
-        let mask = createLipsMask(from: lipsPoints, pixelSize: pixelSize)
-        lipsMask = mask
-
-        if let cg = context.createCGImage(mask, from: ciImage.extent) {
-            maskImage = UIImage(cgImage: cg)
-        }
-
-        landmarksImage = renderLandmarks(landmarks, imageSize: originalImage.size)
-    }
+    private func detectLipsMask() async {}
 
     private func createLipsMask(from points: [CGPoint], pixelSize: CGSize) -> CIImage {
         let format = UIGraphicsImageRendererFormat()
