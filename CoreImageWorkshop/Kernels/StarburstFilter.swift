@@ -24,6 +24,18 @@ class StarburstFilter: CIFilter {
         
         guard let thresholded = thresholdFilter.outputImage else { return nil }
 
-        return thresholded
+        let motionBlur = CIFilter.motionBlur()
+        motionBlur.inputImage = thresholded
+        motionBlur.radius = inputRadius.floatValue
+        motionBlur.angle = inputAngle.floatValue
+        
+        guard let blurred = motionBlur.outputImage?.cropped(to: input.extent) else { return nil }
+        
+        let finalImage = blurred.applyingFilter(
+            "CIAdditionCompositing",
+            parameters: [kCIInputBackgroundImageKey: input]
+        )
+
+        return finalImage
     }
 }
