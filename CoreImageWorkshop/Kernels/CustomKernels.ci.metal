@@ -28,5 +28,23 @@ extern "C" {
             float y = pos.y + sin(pos.y / yWavelength) * yAmplitude;
             return float2(x, y);
         }
+
+        float4 boxBlur(coreimage::sampler src,
+                       float radius,
+                       coreimage::destination dest) {
+            float2 pos = dest.coord();
+            int r = int(radius);
+            float4 sum = float4(0.0);
+            float count = 0.0;
+            
+            for (int y = -r; y <= r; y++) {
+                for (int x = -r; x <= r; x++) {
+                    float2 offset = float2(float(x), float(y));
+                    sum += src.sample(src.transform(pos + offset));
+                    count += 1.0;
+                }
+            }
+            return sum / count;
+        }
     }
 }
