@@ -17,5 +17,16 @@ extern "C" {
             float mask = step(threshold, luma);
             return float4(mask, mask, mask, 1.0);
         }
+
+        float2 carnivalMirror(float xAmplitude,
+                              float yAmplitude,
+                              float xWavelength,
+                              float yWavelength,
+                              coreimage::destination dest) {
+            float2 pos = dest.coord();
+            float x = pos.x + sin(pos.x / xWavelength) * xAmplitude;
+            float y = pos.y + sin(pos.y / yWavelength) * yAmplitude;
+            return float2(x, y);
+        }
     }
 }
