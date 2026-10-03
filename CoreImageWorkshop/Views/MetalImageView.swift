@@ -30,6 +30,9 @@ struct MetalImageView: UIViewRepresentable {
     }
 
     func updateUIView(_ mtkView: MTKView, context: Context) {
+        guard context.coordinator.ciImage != ciImage else { return }
+        context.coordinator.ciImage = ciImage
+        mtkView.setNeedsDisplay()
     }
 
     final class Coordinator: NSObject, MTKViewDelegate {
@@ -43,7 +46,11 @@ struct MetalImageView: UIViewRepresentable {
             device = MTLCreateSystemDefaultDevice()!
             commandQueue = device.makeCommandQueue()!
             colorSpace = CGColorSpaceCreateDeviceRGB()
-            ciContext = CIContext()
+            ciContext = CIContext(mtlDevice: device, options: [
+                .useSoftwareRenderer: false,
+                .highQualityDownsample: false,
+                .cacheIntermediates: false
+            ])
             
             super.init()
         }
@@ -56,6 +63,28 @@ struct MetalImageView: UIViewRepresentable {
                 let drawable = view.currentDrawable,
                 let commandBuffer = commandQueue.makeCommandBuffer()
             else { return }
+            
+            let drawableSize = view.drawableSize
+            let bounds = CGRect(origin: .zero, size: drawableSize)
+            let targetRect = AVMakeRect(aspectRatio: ciImage.extent.size, insideRect: bounds)
+            
+            let originX = targetRect.origin.x
+            let originY = targetRect.origin.y
+            let scaleX = targetRect.width / ciImage.extent.width
+            let scaleY = targetRect.height / ciImage.extent.height
+            let scale = min(scaleX, scaleY)
+            let scaled = ciImage
+                .transformed(by: CGAffineTransform(translationX: -ciImage.extent.origin.x, y: -ciImage.extent.origin.y))
+                .transformed(by: CGAffineTransform(scaleX: scale, y: scale))
+                .transformed(by: CGAffineTransform(translationX: originX, y: originY))
+            
+            ciContext.render(
+                scaled,
+                to: drawable.texture,
+                commandBuffer: commandBuffer,
+                bounds: bounds,
+                colorSpace: colorSpace
+            )
 
             commandBuffer.present(drawable)
             commandBuffer.commit()
